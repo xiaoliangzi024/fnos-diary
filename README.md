@@ -2,7 +2,7 @@
 
 飞牛 fnOS 桌面原生第三方应用：多账号各看各的私人日记，仿博客排版，纯 Node 零依赖、不联网，日记只存在你自己的 NAS 上。
 
-> 下载：**[Releases 里的 diary.fpk](https://github.com/xiaoliangzi024/fnos-diary/releases/download/v0.4.0/diary.fpk)**，完整安装说明见 [安装说明.txt](安装说明.txt)。
+> 下载：**[diary.fpk（这条永远指向最新版）](https://github.com/xiaoliangzi024/fnos-diary/releases/latest/download/diary.fpk)**；各版本更新说明和历史包在 [Releases](https://github.com/xiaoliangzi024/fnos-diary/releases)，完整安装说明见 [安装说明.txt](安装说明.txt)。
 
 ![列表页](docs/screenshots/feed.png)
 

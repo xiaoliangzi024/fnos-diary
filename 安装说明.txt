@@ -5,8 +5,11 @@
 家里几个人各记各的，所以最在意的两件事是：多人之间互相看不到、
 以及更新卸载都不能把数据弄丢。分享出来，有需要的自取。
 
-下载地址（源码也在这个仓库里）：
-    https://github.com/xiaoliangzi024/fnos-diary/releases/download/v0.4.0/diary.fpk
+下载地址（点第一条就行，它永远指向最新版；源码也在这个仓库里）：
+    https://github.com/xiaoliangzi024/fnos-diary/releases/latest/download/diary.fpk
+
+想看每个版本更新了什么，或者要下历史版本：
+    https://github.com/xiaoliangzi024/fnos-diary/releases
 
 
 一、环境要求
