@@ -79,7 +79,7 @@ diary/
   config/privilege         权限与运行身份
   config/resource          资源占用声明
   app/server/server.js     后端（纯 Node 标准库，零依赖）
-  app/www/                 前端（index.html / app.js / style.css，无框架）
+  app/www/                 前端（index.html / app.js / style.css / theme.js，无框架）
   app/ui/config            应用中心里的展示配置
   wizard/uninstall         卸载前向导
 tools/
