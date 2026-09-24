@@ -1,1 +1,36 @@
-本地自用版本，仅供个人在自有飞牛设备上安装使用。
+飞牛日记本 · 授权声明
+======================
+
+版权所有 (c) 2026 xiaoliangzi024
+
+允许你做的：
+  · 在自己的飞牛 NAS 上安装、使用这个应用，不限台数。
+  · 阅读、修改、调试源代码，用于自己学习和自己使用。
+  · 修改后自己打包，装在自己的设备上用。
+
+不允许你做的：
+  · 把本软件（含修改版）打包成"付费应用"出售，或放进任何收费服务里牟利。
+  · 去掉作者信息后声称是自己从零写的。
+
+分发与再发布：
+  欢迎把原版安装包（diary.fpk）和本仓库地址转给别人，无需另外申请授权。
+  改动过的版本要公开分发时，请先开 Issue 说明一下改动内容。
+
+不提供任何保证
+  本软件按"现状"提供，作者不提供任何明示或默示的保证，包括但不限于适销性、
+  特定用途适用性、无侵权、以及数据完整性方面的保证。
+  在任何情况下，作者都不对因使用或无法使用本软件造成的数据丢失、业务中断或
+  任何其他损害负责。
+
+  请务必自己备份数据。日记明文存在硬盘上，任何情况下都不要只依赖软件内的
+  自动备份。
+
+Privacy notice
+  All diary data stays on the user's own NAS device. This app makes no network
+  requests and uploads nothing.
+
+Summary (for non-Chinese readers)
+  Free for personal use and for studying/modifying the source. Selling this
+  software or a modified version is not allowed. Redistribution of the original,
+  unmodified package with credit is welcome. Provided with absolutely no
+  warranty; you are responsible for your own backups.
