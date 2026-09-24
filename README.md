@@ -4,9 +4,9 @@
 
 > 下载：**[Releases 里的 diary.fpk](https://github.com/xiaoliangzi024/fnos-diary/releases/download/v0.3.0/diary.fpk)**，完整安装说明见 [安装说明.txt](安装说明.txt)。
 
-<!-- 截图位：把界面图放到 docs/screenshots/ 后，取消下面两行的注释即可显示 -->
-<!-- ![列表页](docs/screenshots/feed.png) -->
-<!-- ![文章页](docs/screenshots/post.png) -->
+![列表页](docs/screenshots/feed.png)
+
+![文章页](docs/screenshots/post.png)
 
 ## 为什么做这个
 
