@@ -1,32 +1,130 @@
-:root {
+/* ---------- 三档明暗 + 六色强调 ----------
+   所有颜色都必须走变量，不然换深色时会有漏网的白块。
+   data-theme / data-accent 由 theme.js 写在 <html> 上；弹窗里的预览块
+   自己也带这两个属性，所以能提前看到还没生效的那一档。 */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
   --paper: #f7f4ee;
   --surface: #fffdf9;
   --ink: #2b2925;
-  --ink-soft: #6d675e;
-  --ink-faint: #9a938a;
+  --ink-soft: #666057;
+  --ink-faint: #736e64;
   --line: #e3ddd2;
-  --accent: #3c7a6b;
-  --accent-soft: #e6f0ec;
   --danger: #b4483c;
+  --danger-rgb: 180, 72, 60;
+  --on-accent: #fffdf9;
+  --on-danger: #fffdf9;
+  --accent-tint: 0.1;
+  --overlay: rgba(20, 18, 14, 0.42);
   --shadow: 0 1px 3px rgba(60, 50, 30, 0.07), 0 8px 24px rgba(60, 50, 30, 0.05);
+  --shadow-lg: 0 18px 50px rgba(20, 18, 14, 0.26);
   --serif: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", SimSun, Georgia, serif;
   --sans: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Segoe UI", system-ui, sans-serif;
   --fs: 18px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #1c1b19;
-    --surface: #24231f;
-    --ink: #e8e3d9;
-    --ink-soft: #a9a29a;
-    --ink-faint: #7a746c;
-    --line: #35332e;
-    --accent: #6cb39c;
-    --accent-soft: #26332f;
-    --danger: #d97a6d;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.2);
-  }
+/* 护眼绿：低蓝、不晃眼，长时间写字用这档 */
+[data-theme="sepia"] {
+  color-scheme: light;
+  --paper: #e6ecdd;
+  --surface: #f0f3e8;
+  --ink: #2f3829;
+  --ink-soft: #545e4d;
+  --ink-faint: #616b5a;
+  --line: #ccd6c0;
+  --danger: #a34a3a;
+  --danger-rgb: 163, 74, 58;
+  --on-accent: #f4f7ee;
+  --on-danger: #f4f7ee;
+  --accent-tint: 0.1;
+  --overlay: rgba(26, 34, 24, 0.42);
+  --shadow: 0 1px 3px rgba(40, 55, 35, 0.09), 0 8px 24px rgba(40, 55, 35, 0.07);
+  --shadow-lg: 0 18px 50px rgba(26, 34, 24, 0.3);
+}
+
+/* 深色：不用纯黑，字也调成米白，晚上不至于晃眼 */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #1c1b19;
+  --surface: #24231f;
+  --ink: #e8e3d9;
+  --ink-soft: #b0a9a0;
+  --ink-faint: #9c958b;
+  --line: #35332e;
+  --danger: #d97a6d;
+  --danger-rgb: 217, 122, 109;
+  --on-accent: #16181a;
+  --on-danger: #16181a;
+  --accent-tint: 0.17;
+  --overlay: rgba(0, 0, 0, 0.62);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+
+/* 强调色：浅色档（含护眼绿）共用一组，深色档整体提亮。
+   带 data-accent 的元素自己算 --accent，所以弹窗里的色块能单独换色。 */
+[data-accent="moss"] {
+  --accent-l: #346a59;
+  --accent-d: #74bba4;
+  --accent-l-rgb: 52, 106, 89;
+  --accent-d-rgb: 116, 187, 164;
+}
+[data-accent="indigo"] {
+  --accent-l: #35618f;
+  --accent-d: #7aacda;
+  --accent-l-rgb: 53, 97, 143;
+  --accent-d-rgb: 122, 172, 218;
+}
+[data-accent="tea"] {
+  --accent-l: #845629;
+  --accent-d: #cf9f66;
+  --accent-l-rgb: 132, 86, 41;
+  --accent-d-rgb: 207, 159, 102;
+}
+[data-accent="rose"] {
+  --accent-l: #984658;
+  --accent-d: #e095a7;
+  --accent-l-rgb: 152, 70, 88;
+  --accent-d-rgb: 224, 149, 167;
+}
+[data-accent="slate"] {
+  --accent-l: #4c5a63;
+  --accent-d: #a3b4bf;
+  --accent-l-rgb: 76, 90, 99;
+  --accent-d-rgb: 163, 180, 191;
+}
+[data-accent="plum"] {
+  --accent-l: #6b4a86;
+  --accent-d: #b697d0;
+  --accent-l-rgb: 107, 74, 134;
+  --accent-d-rgb: 182, 151, 208;
+}
+
+[data-accent="moss"],
+[data-accent="indigo"],
+[data-accent="tea"],
+[data-accent="rose"],
+[data-accent="slate"],
+[data-accent="plum"] {
+  --accent: var(--accent-l);
+  --accent-rgb: var(--accent-l-rgb);
+}
+
+/* 深色档下换成提亮的那组（写在选择器里而不是靠继承，色块自己也能跟着变深/变亮） */
+[data-theme="dark"] [data-accent],
+[data-theme="dark"][data-accent] {
+  --accent: var(--accent-d);
+  --accent-rgb: var(--accent-d-rgb);
+}
+
+/* 这两个是从当前档/当前色算出来的，必须写在带属性的元素上，
+   这样弹窗预览块换档时才会跟着重算，而不是继承外层算好的值 */
+[data-theme],
+[data-accent] {
+  --accent-soft: rgba(var(--accent-rgb), var(--accent-tint));
+  --danger-soft: rgba(var(--danger-rgb), 0.28);
 }
 
 * {
@@ -115,7 +213,7 @@ body {
   border: 1px solid var(--accent);
   border-radius: 0 8px 8px 0;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 14px;
   font-family: inherit;
   cursor: pointer;
@@ -129,6 +227,11 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* 顶栏按钮不许把字拆开换行，放不下就整个挪到第二行 */
+.top-tools button {
+  white-space: nowrap;
 }
 
 .who {
@@ -532,7 +635,7 @@ body {
 .primary-btn {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-weight: 600;
 }
 
@@ -777,7 +880,7 @@ body {
 
 .cell.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .dot {
@@ -793,7 +896,7 @@ body {
 }
 
 .cell.active .dot {
-  background: #fff;
+  background: var(--on-accent);
 }
 
 .verline {
@@ -856,14 +959,14 @@ body {
 }
 
 .tiny-btn.danger {
-  color: #b4453c;
-  border-color: #e6c9c5;
+  color: var(--danger);
+  border-color: var(--danger-soft);
 }
 
 .tiny-btn.danger:hover {
-  background: #b4453c;
-  border-color: #b4453c;
-  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--on-danger);
 }
 
 .tiny-btn:disabled {
@@ -924,7 +1027,7 @@ body {
 .dialog {
   position: fixed;
   inset: 0;
-  background: rgba(20, 18, 14, 0.42);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -934,9 +1037,12 @@ body {
 .dialog-box {
   width: min(440px, 92vw);
   background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--shadow-lg);
   padding: 22px 24px 18px;
+  max-height: 88vh;
+  overflow: auto;
 }
 
 .dialog-title {
@@ -1006,6 +1112,163 @@ body {
   z-index: 50;
 }
 
+/* ---------- 外观设置弹窗 ---------- */
+
+.ap-note {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+/* 预览块自己带 data-theme / data-accent，选哪一档这里就先变成哪一档 */
+.ap-preview {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  padding: 13px 13px 14px;
+  margin-bottom: 18px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ap-preview .card {
+  padding: 13px 14px;
+  cursor: default;
+}
+
+.ap-preview .card-title {
+  font-size: 17px;
+}
+
+.ap-preview .card-preview {
+  -webkit-line-clamp: 2;
+  font-size: 13px;
+}
+
+.ap-preview-ops {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.ap-preview-ops .status {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.ap-group + .ap-group {
+  margin-top: 16px;
+}
+
+.ap-label {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.ap-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dialog-box label.ap-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.dialog-box label.ap-opt:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.ap-opt input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.ap-hint {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+}
+
+.ap-opt input:checked ~ span {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.ap-opt input:checked ~ .ap-hint {
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+
+.ap-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 4px;
+}
+
+.dialog-box label.sw {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 56px;
+  margin: 0;
+  padding: 4px 2px 2px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.sw input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+}
+
+.sw i {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.sw input:checked + i {
+  box-shadow: inset 0 0 0 3px var(--surface), 0 0 0 2px var(--accent);
+}
+
+.sw input:checked ~ span {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.sw input:focus-visible + i {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ---------- 响应式：窄屏 + 手机 ----------
    放在整个文件最后，保证能盖住上面各组件自己写的 display */
 
@@ -1063,6 +1326,7 @@ body {
     order: 3;
     flex: 1 1 100%;
     gap: 8px;
+    flex-wrap: wrap;
   }
   #btn-new {
     margin-right: auto;
@@ -1162,7 +1426,7 @@ body {
   .dialog-box {
     width: 94vw;
     padding: 18px 16px 14px;
-    max-height: 82vh;
+    max-height: 88vh;
     overflow: auto;
   }
   .dialog-foot {
@@ -1183,5 +1447,39 @@ body {
   }
   .cat-list li {
     padding: 10px 9px;
+  }
+  /* 外观弹窗：手机上把预览收紧，一屏能看全，不用边滚边选 */
+  .ap-preview {
+    padding: 9px 10px 10px;
+    margin-bottom: 12px;
+  }
+  .ap-preview .card {
+    padding: 11px 12px;
+  }
+  .ap-preview .card-preview {
+    -webkit-line-clamp: 1;
+  }
+  .ap-preview-ops {
+    margin-top: 9px;
+  }
+  .ap-preview-ops .status {
+    display: none;
+  }
+  .ap-preview-ops .small-btn {
+    display: none;
+  }
+  .dialog-box label.ap-opt {
+    padding: 8px 13px;
+  }
+  .ap-group + .ap-group {
+    margin-top: 12px;
+  }
+  .ap-note {
+    margin-top: 12px;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .dialog-foot {
+    margin-top: 14px;
   }
 }

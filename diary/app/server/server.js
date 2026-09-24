@@ -17,7 +17,7 @@ const MONTH_RE = /^\d{4}-\d{2}$/;
 const ID_RE = /^c\d{1,6}$/;
 const ENTRY_RE = /^e[0-9a-z]{6,16}$/;
 const MAX_CAT = 30;
-const APP_VER = process.env.APP_VER || "0.3.0";
+const APP_VER = process.env.APP_VER || "0.4.0";
 const DATA_VER = "1";
 const BK_KEEP = 10;
 

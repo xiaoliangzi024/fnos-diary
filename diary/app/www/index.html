@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light" data-accent="moss">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
     <title>日记本</title>
     <link rel="stylesheet" href="./style.css" />
+    <script src="./theme.js"></script>
   </head>
   <body>
     <div id="app">
@@ -27,6 +28,7 @@
         </form>
 
         <div class="top-tools">
+          <button id="btn-theme" class="small-btn" type="button" title="换浅色、护眼绿、深色，还有强调色">外观</button>
           <button id="btn-new" class="primary-btn" type="button">写一篇</button>
           <button id="btn-export" class="ghost-btn" type="button">导出备份</button>
           <button id="btn-import" class="ghost-btn" type="button">导入备份</button>

@@ -122,12 +122,12 @@ start_app() {
         WWW_DIR="$WWW_DIR" \
         GATEWAY_PREFIX="$GATEWAY_PREFIX" \
         SOCKET_PATH="$SOCKET_PATH" \
-        APP_VER="${TRIM_APPVER:-0.3.0}" \
+        APP_VER="${TRIM_APPVER:-0.4.0}" \
         "$NODE_BIN" server.js >>"$LOG_FILE" 2>&1 &
       ;;
     su)
       su -s /bin/sh "$PKG_USER" -c \
-        "exec env DATA_DIR='$DATA_DIR' WWW_DIR='$WWW_DIR' GATEWAY_PREFIX='$GATEWAY_PREFIX' SOCKET_PATH='$SOCKET_PATH' APP_VER='${TRIM_APPVER:-0.3.0}' '$NODE_BIN' server.js" \
+        "exec env DATA_DIR='$DATA_DIR' WWW_DIR='$WWW_DIR' GATEWAY_PREFIX='$GATEWAY_PREFIX' SOCKET_PATH='$SOCKET_PATH' APP_VER='${TRIM_APPVER:-0.4.0}' '$NODE_BIN' server.js" \
         >>"$LOG_FILE" 2>&1 &
       ;;
     *)
@@ -135,7 +135,7 @@ start_app() {
         WWW_DIR="$WWW_DIR" \
         GATEWAY_PREFIX="$GATEWAY_PREFIX" \
         SOCKET_PATH="$SOCKET_PATH" \
-        APP_VER="${TRIM_APPVER:-0.3.0}" \
+        APP_VER="${TRIM_APPVER:-0.4.0}" \
         "$NODE_BIN" server.js >>"$LOG_FILE" 2>&1 &
       ;;
   esac

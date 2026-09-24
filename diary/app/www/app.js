@@ -991,6 +991,88 @@
     toast("正文字号 " + fontSize + "，会一直记住");
   }
 
+  /* ---------- 外观：明暗档 + 强调色 ---------- */
+
+  var THEME_NAMES = { auto: "跟随系统", light: "浅色", sepia: "护眼绿", dark: "深色" };
+  var ACCENT_NAMES = [
+    ["moss", "苔绿"],
+    ["indigo", "靛蓝"],
+    ["tea", "茶棕"],
+    ["rose", "胭脂"],
+    ["slate", "石墨"],
+    ["plum", "紫棠"],
+  ];
+
+  function appearanceHtml() {
+    var mode = DiaryTheme.mode();
+    var accent = DiaryTheme.accent();
+    var chips = ["auto", "light", "sepia", "dark"]
+      .map(function (m) {
+        var hint = m === "auto" ? '<span class="ap-hint">现在走' + (DiaryTheme.system() === "dark" ? "深色" : "浅色") + "</span>" : "";
+        return (
+          '<label class="ap-opt"><input type="radio" name="ap-mode" value="' +
+          m +
+          '"' +
+          (m === mode ? " checked" : "") +
+          " /><span>" +
+          THEME_NAMES[m] +
+          "</span>" +
+          hint +
+          "</label>"
+        );
+      })
+      .join("");
+    var sws = ACCENT_NAMES.map(function (a) {
+      return (
+        '<label class="sw" data-accent="' +
+        a[0] +
+        '"><input type="radio" name="ap-accent" value="' +
+        a[0] +
+        '"' +
+        (a[0] === accent ? " checked" : "") +
+        " /><i></i><span>" +
+        a[1] +
+        "</span></label>"
+      );
+    }).join("");
+    return (
+      '<div class="ap-preview" id="ap-preview">' +
+      '<div class="card"><div class="card-top"><span class="card-date">今天</span><span class="tag">随笔</span><span class="mood-tag">平静</span></div>' +
+      '<div class="card-title">这一行看标题</div>' +
+      '<div class="card-preview">这一行看正文：太亮会晃眼，太暗费眼睛，挑一个能写很久的。按钮、栏目选中、日历上的圆点都会跟着这个强调色走。</div></div>' +
+      '<div class="ap-preview-ops"><span class="status saved">已保存 · 21:04</span><button type="button" class="primary-btn">保存并返回</button><button type="button" class="small-btn">再看更早的</button></div>' +
+      "</div>" +
+      '<div class="ap-group"><span class="ap-label">明暗</span><div class="ap-opts">' +
+      chips +
+      "</div></div>" +
+      '<div class="ap-group"><span class="ap-label">强调色</span><div class="ap-swatches">' +
+      sws +
+      "</div></div>" +
+      '<div class="ap-note">点一下马上生效，只记在这台设备上看，不跟账号走，也不会进备份。</div>'
+    );
+  }
+
+  // 预览块单独带上当前档位，这样它在弹窗里显示的就是刚选中的那套颜色
+  function syncAppearancePreview() {
+    var pv = el("ap-preview");
+    if (!pv) return;
+    pv.setAttribute("data-theme", DiaryTheme.theme());
+    pv.setAttribute("data-accent", DiaryTheme.accent());
+  }
+
+  function askAppearance() {
+    dialog({ title: "外观", html: appearanceHtml(), okText: "完成" });
+    syncAppearancePreview();
+    var inputs = el("dialog").querySelectorAll('input[name="ap-mode"], input[name="ap-accent"]');
+    Array.prototype.forEach.call(inputs, function (inp) {
+      inp.addEventListener("change", function () {
+        if (this.name === "ap-mode") DiaryTheme.setMode(this.value);
+        else DiaryTheme.setAccent(this.value);
+        syncAppearancePreview();
+      });
+    });
+  }
+
   /* ---------- 每页显示多少篇 ---------- */
 
   function loadPageSize() {
@@ -1301,6 +1383,9 @@
         break;
       case "btn-fs-down":
         stepFontSize(-1);
+        break;
+      case "btn-theme":
+        askAppearance();
         break;
       default:
         break;
