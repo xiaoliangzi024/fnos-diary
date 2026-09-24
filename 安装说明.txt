@@ -5,7 +5,8 @@
 家里几个人各记各的，所以最在意的两件事是：多人之间互相看不到、
 以及更新卸载都不能把数据弄丢。分享出来，有需要的自取。
 
-附件：diary.fpk（安装包）
+下载地址（源码也在这个仓库里）：
+    https://github.com/xiaoliangzi024/fnos-diary/releases/download/v0.3.0/diary.fpk
 
 
 一、环境要求
