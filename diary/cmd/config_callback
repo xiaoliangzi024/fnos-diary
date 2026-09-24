@@ -1,0 +1,11 @@
+#!/bin/bash
+set -u
+
+# 这些路径变量由飞牛注入；万一某个是空的，拼出来的路径会退到根目录导致 mkdir 失败，
+# 所以统一留一份和 /var/apps/<应用名>/ 一致的兜底值。
+PKGHOME="${TRIM_PKGHOME:-/var/apps/diary/home}"
+PKGVAR="${TRIM_PKGVAR:-/var/apps/diary/var}"
+APPDEST="${TRIM_APPDEST:-/var/apps/diary/target}"
+# 配置变更后由系统重启服务，这里只需清理可能残留的 Socket 文件
+rm -f "${APPDEST}/app.sock" 2>/dev/null || true
+exit 0

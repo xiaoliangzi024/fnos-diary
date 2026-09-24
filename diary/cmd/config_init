@@ -1,0 +1,5 @@
+#!/bin/bash
+set -u
+
+# 这个版本没有需要用户填的配置项，位置固定在 ${TRIM_PKGHOME}/diary
+exit 0

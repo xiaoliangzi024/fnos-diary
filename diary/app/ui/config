@@ -1,0 +1,14 @@
+{
+  ".url": {
+    "diary.main": {
+      "title": "日记本",
+      "icon": "images/icon_{0}.png",
+      "type": "iframe",
+      "protocol": "",
+      "gatewayPrefix": "/app/diary",
+      "gatewaySocket": "app.sock",
+      "url": "/app/diary/",
+      "allUsers": true
+    }
+  }
+}

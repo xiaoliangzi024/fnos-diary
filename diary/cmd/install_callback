@@ -1,0 +1,23 @@
+#!/bin/bash
+set -u
+
+# 这些路径变量由飞牛注入；万一某个是空的，拼出来的路径会退到根目录导致 mkdir 失败，
+# 所以统一留一份和 /var/apps/<应用名>/ 一致的兜底值。
+PKGHOME="${TRIM_PKGHOME:-/var/apps/diary/home}"
+PKGVAR="${TRIM_PKGVAR:-/var/apps/diary/var}"
+APPDEST="${TRIM_APPDEST:-/var/apps/diary/target}"
+
+# 安装完成后收尾：程序目录的属主交给应用用户，
+# 否则降权后的服务进程既读不到自己的代码，也无法在 target 下建 Socket。
+
+PKG_USER="${TRIM_USERNAME:-diary}"
+PKG_GROUP="${TRIM_GROUPNAME:-diary}"
+
+echo "日记本安装完成，日记存放在 ${PKGHOME}/diary。" >>"${PKGVAR}/app.log" 2>/dev/null || true
+
+if [ "$(id -u)" -eq 0 ]; then
+  chown -R "${PKG_USER}:${PKG_GROUP}" "${APPDEST}" 2>/dev/null || true
+  chown -R "${PKG_USER}:${PKG_GROUP}" "${PKGVAR}" 2>/dev/null || true
+fi
+
+exit 0

@@ -1,0 +1,12 @@
+#!/bin/bash
+set -u
+
+# 这些路径变量由飞牛注入；万一某个是空的，拼出来的路径会退到根目录导致 mkdir 失败，
+# 所以统一留一份和 /var/apps/<应用名>/ 一致的兜底值。
+PKGHOME="${TRIM_PKGHOME:-/var/apps/diary/home}"
+PKGVAR="${TRIM_PKGVAR:-/var/apps/diary/var}"
+APPDEST="${TRIM_APPDEST:-/var/apps/diary/target}"
+
+# 数据清理在 uninstall_init 里做完了，这里只收尾程序运行留下的文件
+rm -f "${APPDEST}/app.sock" "${PKGVAR}/app.pid" 2>/dev/null || true
+exit 0

@@ -1,0 +1,15 @@
+appname=diary
+version=0.3.0
+display_name=日记本
+desc=写在飞牛桌面上的私人日记，分栏目记录，每个账号只看自己的内容。
+changelog=0.3.0 面向长期大量日记：列表和搜索改成走内存缓存，一万篇也是秒开；搜索结果也能翻页，每页显示 10/20/30/50 篇可以自己调；导入备份不再有 2MB 大小限制、也不再最多导两万篇，存十几年一次性导回来；右侧栏去掉重复的「近期日记」。
+source=thirdparty
+platform=all
+maintainer=local
+distributor=local
+desktop_uidir=ui
+desktop_applaunchname=diary.main
+install_dep_apps=nodejs_v22
+os_min_version=1.1.3100
+ctl_stop=true
+disable_authorization_path=true

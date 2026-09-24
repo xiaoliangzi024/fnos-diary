@@ -1,0 +1,63 @@
+#!/bin/bash
+set -u
+
+# 这些路径变量由飞牛注入；万一某个是空的，拼出来的路径会退到根目录导致 mkdir 失败，
+# 所以统一留一份和 /var/apps/<应用名>/ 一致的兜底值。
+PKGHOME="${TRIM_PKGHOME:-/var/apps/diary/home}"
+PKGVAR="${TRIM_PKGVAR:-/var/apps/diary/var}"
+APPDEST="${TRIM_APPDEST:-/var/apps/diary/target}"
+
+# 升级前必做的一件事：先把日记数据整包备份，备份不成功就不允许继续升级。
+# 数据放在 ${PKGHOME}/diary（建不出来时主程序会退用 ${PKGVAR}/diary），
+# 升级只换程序文件，正常碰不到它；这里备份是为了防"升级半途失败"和"新版本改了存储格式"。
+
+PKG_USER="${TRIM_USERNAME:-diary}"
+PKG_GROUP="${TRIM_GROUPNAME:-diary}"
+BK_DIR="${PKGVAR}/backups"
+OLD_VER="${TRIM_OLD_APPVER:-未知}"
+NEW_VER="${TRIM_APPVER:-未知}"
+KEEP=5
+
+die() {
+  echo "$1" >"${TRIM_TEMP_LOGFILE:-/dev/null}" 2>/dev/null || true
+  echo "diary upgrade: $1" >&2
+  exit 1
+}
+
+mkdir -p "$BK_DIR" 2>/dev/null || true
+if [ "$(id -u)" -eq 0 ]; then
+  chown "${PKG_USER}:${PKG_GROUP}" "$BK_DIR" 2>/dev/null || true
+fi
+
+backed=0
+missing=0
+idx=0
+for DATA_DIR in "${PKGHOME}/diary" "${PKGVAR}/diary"; do
+  idx=$((idx + 1))
+  [ -d "$DATA_DIR" ] || { missing=$((missing + 1)); continue; }
+  [ -n "$(ls -A "$DATA_DIR" 2>/dev/null)" ] || continue
+  STAMP="$(date '+%Y%m%d-%H%M%S')"
+  BK_FILE="${BK_DIR}/diary-数据-${idx}-${OLD_VER}_${STAMP}.tgz"
+  tar -czf "$BK_FILE" -C "$(dirname "$DATA_DIR")" "$(basename "$DATA_DIR")" \
+    || die "备份日记数据失败，已中止升级。你的日记还是原来的样子，没有被动过。"
+  # 备份没验证过就等于没备份
+  tar -tzf "$BK_FILE" >/dev/null 2>&1 \
+    || die "备份文件校验没通过，已中止升级。日记数据未改动。"
+  backed=$((backed + 1))
+  echo "diary upgrade: ${OLD_VER} -> ${NEW_VER}，已备份到 ${BK_FILE}" >>"${PKGVAR}/app.log" 2>/dev/null || true
+done
+
+if [ "$backed" -eq 0 ]; then
+  if [ "$missing" -eq 2 ]; then
+    echo "diary upgrade: 还没有日记数据，跳过备份。" >&2
+  else
+    echo "diary upgrade: 日记目录是空的，跳过备份。" >&2
+  fi
+fi
+
+# 只留最近 KEEP 份，避免把硬盘撑满
+ls -1dt "${BK_DIR}"/diary-数据-*.tgz 2>/dev/null | tail -n +$((KEEP + 1)) | while read -r old; do
+  rm -f "$old"
+done
+
+exit 0

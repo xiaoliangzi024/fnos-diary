@@ -1,0 +1,25 @@
+# 这个仓库里的文件要按字节原样对待：打包成 .fpk 时换行符一改，
+# 飞牛上的生命周期脚本就会因为 '#!/bin/bash\r' 直接跑不起来。
+* -text
+
+# 以下几类明确锁定 LF，任何平台 clone 出来都不能变
+diary/cmd/*           text eol=lf
+diary/manifest        text eol=lf
+diary/config/*        text eol=lf
+diary/wizard/*        text eol=lf
+diary/app/ui/config   text eol=lf
+diary/app/server/*.js text eol=lf
+diary/app/www/*.js    text eol=lf
+diary/app/www/*.css   text eol=lf
+diary/app/www/*.html  text eol=lf
+tools/*.py            text eol=lf
+*.md                  text eol=lf
+LICENSE               text eol=lf
+.gitignore            text eol=lf
+.gitattributes        text eol=lf
+
+# 二进制文件
+*.png binary
+*.ico binary
+*.jpg binary
+*.fpk binary

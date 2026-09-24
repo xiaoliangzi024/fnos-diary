@@ -1,0 +1,35 @@
+#!/bin/bash
+set -u
+
+# 开发文档说明：生命周期脚本确实需要特权准备时才用 root 模式。
+# 这里用 root 只做一件事——把数据目录建出来、把属主交给应用自己的用户，
+# 服务进程启动时会降权到该用户运行，不会以 root 常驻。
+
+PKG_USER="${TRIM_USERNAME:-diary}"
+PKG_GROUP="${TRIM_GROUPNAME:-diary}"
+# 这几个变量由飞牛注入；万一某个是空的，路径会变成根目录，mkdir 必然失败，
+# 所以留一份和 /var/apps/<应用名>/ 一致的兜底值。
+PKGHOME="${TRIM_PKGHOME:-/var/apps/diary/home}"
+PKGVAR="${TRIM_PKGVAR:-/var/apps/diary/var}"
+DATA_DIR="${PKGHOME}/diary"
+ALT_DIR="${PKGVAR}/diary"
+
+warn() {
+  echo "diary install: $1" >&2
+}
+
+# 建目录失败不中止安装：主程序启动时会自动改用备用目录，日记照样能写
+mkdir -p "${PKGVAR}" 2>/dev/null || warn "运行目录 ${PKGVAR} 创建失败。"
+
+for d in "$DATA_DIR" "$ALT_DIR"; do
+  if mkdir -p "$d" 2>/dev/null; then
+    chown "${PKG_USER}:${PKG_GROUP}" "$d" 2>/dev/null || true
+    chmod 700 "$d" 2>/dev/null || true
+  else
+    warn "无法创建 $d。"
+  fi
+done
+
+chown "${PKG_USER}:${PKG_GROUP}" "${PKGHOME}" 2>/dev/null || true
+
+exit 0

@@ -1,0 +1,184 @@
+#!/bin/bash
+set -u
+
+NODE_BIN="/var/apps/nodejs_v22/target/bin/node"
+# 这些变量由飞牛注入；万一某个是空的，路径会退到根目录导致 mkdir 失败，
+# 所以留一份和 /var/apps/<应用名>/ 一致的兜底值。
+PKGHOME="${TRIM_PKGHOME:-/var/apps/diary/home}"
+PKGVAR="${TRIM_PKGVAR:-/var/apps/diary/var}"
+APPDEST="${TRIM_APPDEST:-/var/apps/diary/target}"
+APP_DIR="${APPDEST}/server"
+WWW_DIR="${APPDEST}/www"
+LOG_FILE="${PKGVAR}/app.log"
+PID_FILE="${PKGVAR}/app.pid"
+SOCKET_PATH="${APPDEST}/app.sock"
+GATEWAY_PREFIX="/app/diary"
+PKG_USER="${TRIM_USERNAME:-diary}"
+PKG_GROUP="${TRIM_GROUPNAME:-diary}"
+
+DATA_DIR=""
+
+log_msg() {
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >>"$LOG_FILE" 2>/dev/null || true
+}
+
+fail() {
+  log_msg "ERROR: $1"
+  echo "$1" >"${TRIM_TEMP_LOGFILE:-/dev/null}" 2>/dev/null || true
+  echo "$1" >&2
+  exit 1
+}
+
+# 能不能建、能不能写，试一次就知道
+writable_dir() {
+  local d="$1"
+  mkdir -p "$d" 2>/dev/null \
+    && touch "$d/.write-test" 2>/dev/null \
+    && rm -f "$d/.write-test" 2>/dev/null
+}
+
+has_diary_data() {
+  local d="$1"
+  [ -d "$d" ] && [ -n "$(ls -A "$d" 2>/dev/null)" ]
+}
+
+# 数据目录优先用应用自己的；万一它写不进去（权限、磁盘等各种情况）就退到运行目录。
+# 已经写过日记的那一边优先锁定，免得两边来回切导致"日记打不开"。
+resolve_data_dir() {
+  local primary="${PKGHOME}/diary" alt="${PKGVAR}/diary"
+  if has_diary_data "$alt" && writable_dir "$alt"; then
+    printf '%s' "$alt"
+    return 0
+  fi
+  if writable_dir "$primary"; then
+    printf '%s' "$primary"
+    return 0
+  fi
+  if writable_dir "$alt"; then
+    printf '%s' "$alt"
+    return 0
+  fi
+  return 1
+}
+
+# 生命周期脚本按 root 模式跑，落盘前把属主交回应用用户，服务再以普通用户启动
+prepare_dirs() {
+  [ "$(id -u)" -eq 0 ] || return 0
+  chown "${PKG_USER}:${PKG_GROUP}" "$DATA_DIR" 2>/dev/null || true
+  chmod 700 "$DATA_DIR" 2>/dev/null || true
+  chown "${PKG_USER}:${PKG_GROUP}" "${APPDEST}" 2>/dev/null || true
+  chown "${PKG_USER}:${PKG_GROUP}" "${PKGVAR}" 2>/dev/null || true
+}
+
+# 真正跑起来的是普通用户进程；环境里没有 runuser 时退回 su，用户不存在就不降权
+build_service_cmd() {
+  DROP_MODE=""
+  if [ "$(id -u)" -eq 0 ] && id -u "$PKG_USER" >/dev/null 2>&1; then
+    if command -v runuser >/dev/null 2>&1; then
+      DROP_MODE="runuser"
+    elif command -v su >/dev/null 2>&1; then
+      DROP_MODE="su"
+    fi
+  fi
+}
+
+check_process() {
+  [ -n "${1:-}" ] && kill -0 "$1" 2>/dev/null
+}
+
+read_pid() {
+  [ -f "$PID_FILE" ] && head -n 1 "$PID_FILE" | tr -d '[:space:]'
+}
+
+is_running() {
+  local pid
+  pid="$(read_pid)"
+  if [ -n "$pid" ] && check_process "$pid"; then
+    return 0
+  fi
+  rm -f "$PID_FILE"
+  return 1
+}
+
+start_app() {
+  if is_running; then
+    log_msg "已在运行，跳过启动"
+    return 0
+  fi
+  [ -x "$NODE_BIN" ] || fail "缺少 Node.js 运行环境，请先在应用中心安装 Node.js v22 后重试。"
+  [ -f "$APP_DIR/server.js" ] || fail "应用文件缺失，请重新安装日记本。"
+
+  DATA_DIR="$(resolve_data_dir)" || fail "日记数据目录建不出来也写不进去，请检查存储卷是否正常挂载。"
+  prepare_dirs
+  rm -f "$SOCKET_PATH"
+
+  cd "$APP_DIR" || fail "无法进入应用目录：$APP_DIR"
+  build_service_cmd
+
+  case "$DROP_MODE" in
+    runuser)
+      runuser -u "$PKG_USER" -- env \
+        DATA_DIR="$DATA_DIR" \
+        WWW_DIR="$WWW_DIR" \
+        GATEWAY_PREFIX="$GATEWAY_PREFIX" \
+        SOCKET_PATH="$SOCKET_PATH" \
+        APP_VER="${TRIM_APPVER:-0.3.0}" \
+        "$NODE_BIN" server.js >>"$LOG_FILE" 2>&1 &
+      ;;
+    su)
+      su -s /bin/sh "$PKG_USER" -c \
+        "exec env DATA_DIR='$DATA_DIR' WWW_DIR='$WWW_DIR' GATEWAY_PREFIX='$GATEWAY_PREFIX' SOCKET_PATH='$SOCKET_PATH' APP_VER='${TRIM_APPVER:-0.3.0}' '$NODE_BIN' server.js" \
+        >>"$LOG_FILE" 2>&1 &
+      ;;
+    *)
+      DATA_DIR="$DATA_DIR" \
+        WWW_DIR="$WWW_DIR" \
+        GATEWAY_PREFIX="$GATEWAY_PREFIX" \
+        SOCKET_PATH="$SOCKET_PATH" \
+        APP_VER="${TRIM_APPVER:-0.3.0}" \
+        "$NODE_BIN" server.js >>"$LOG_FILE" 2>&1 &
+      ;;
+  esac
+  echo "$!" >"$PID_FILE"
+  log_msg "已启动，PID $(read_pid)，数据目录 $DATA_DIR"
+}
+
+stop_app() {
+  local pid count=0
+  pid="$(read_pid)"
+  if [ -z "$pid" ] || ! check_process "$pid"; then
+    rm -f "$PID_FILE" "$SOCKET_PATH"
+    return 0
+  fi
+  log_msg "正在停止 PID $pid"
+  kill -TERM "$pid" 2>/dev/null || true
+  while check_process "$pid" && [ "$count" -lt 10 ]; do
+    sleep 1
+    count=$((count + 1))
+  done
+  if check_process "$pid"; then
+    log_msg "超时未退出，强制结束"
+    kill -KILL "$pid" 2>/dev/null || true
+  fi
+  rm -f "$PID_FILE" "$SOCKET_PATH"
+}
+
+case "${1:-}" in
+  start)
+    start_app
+    ;;
+  stop)
+    stop_app
+    ;;
+  status)
+    if is_running; then
+      exit 0
+    fi
+    exit 3
+    ;;
+  *)
+    fail "未知的运行命令：${1:-空}"
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,32 @@
+#!/bin/bash
+set -u
+
+# 这些路径变量由飞牛注入；万一某个是空的，拼出来的路径会退到根目录导致 mkdir 失败，
+# 所以统一留一份和 /var/apps/<应用名>/ 一致的兜底值。
+PKGHOME="${TRIM_PKGHOME:-/var/apps/diary/home}"
+PKGVAR="${TRIM_PKGVAR:-/var/apps/diary/var}"
+APPDEST="${TRIM_APPDEST:-/var/apps/diary/target}"
+
+# 卸载就删干净：日记数据、升级备份、日志、Socket 一律清掉，不在硬盘里留残留。
+# "先导出备份"的提醒放在卸载向导里，必须勾选确认才会走到这一步。
+
+log() {
+  echo "diary uninstall: $1" >&2
+}
+
+for DATA_DIR in "${PKGHOME}/diary" "${PKGVAR}/diary"; do
+  if [ -d "$DATA_DIR" ]; then
+    rm -rf "$DATA_DIR" && log "已删除日记数据：$DATA_DIR" || log "删除 $DATA_DIR 失败，请稍后手动删除。"
+  fi
+done
+
+# 早期版本曾在存储卷根目录放过卸载备份，一并清掉
+if [ -n "${TRIM_APPDEST_VOL:-}" ] && [ -d "${TRIM_APPDEST_VOL}/diary-backups" ]; then
+  rm -f "${TRIM_APPDEST_VOL}/diary-backups"/diary-*.tgz 2>/dev/null || true
+  rmdir "${TRIM_APPDEST_VOL}/diary-backups" 2>/dev/null || true
+fi
+
+rm -rf "${PKGVAR}/backups" 2>/dev/null || true
+rm -f "${PKGVAR}/app.log" "${PKGVAR}/app.pid" "${APPDEST}/app.sock" 2>/dev/null || true
+
+exit 0

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <title>日记本</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <img src="./images/icon_64.png" alt="" class="brand-icon" />
+          <span class="brand-name">日记本</span>
+        </div>
+
+        <form id="search-form" class="search-box">
+          <input
+            id="search"
+            class="search"
+            type="search"
+            placeholder="搜标题或正文，空格分多个词"
+            autocomplete="off"
+          />
+          <button id="btn-search" class="search-btn" type="submit">搜索</button>
+        </form>
+
+        <div class="top-tools">
+          <button id="btn-new" class="primary-btn" type="button">写一篇</button>
+          <button id="btn-export" class="ghost-btn" type="button">导出备份</button>
+          <button id="btn-import" class="ghost-btn" type="button">导入备份</button>
+          <input id="import-file" type="file" accept=".json,application/json" class="hidden" />
+          <span id="who" class="who"></span>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="main-area">
+          <!-- 一、文章列表（仿博客首页） -->
+          <div id="feed" class="feed">
+            <div class="feed-head">
+              <div class="feed-title-wrap">
+                <h2 id="feed-title" class="feed-title">全部日记</h2>
+                <span id="feed-count" class="feed-count"></span>
+              </div>
+              <div class="feed-ops">
+                <label class="page-pick">每页
+                  <select id="page-size" title="每页显示多少篇">
+                    <option value="10">10 篇</option>
+                    <option value="20">20 篇</option>
+                    <option value="30">30 篇</option>
+                    <option value="50">50 篇</option>
+                  </select>
+                </label>
+                <button id="btn-batch" class="tiny-btn" type="button">批量删除</button>
+              </div>
+            </div>
+            <div id="batch-bar" class="batch-bar hidden">
+              <label class="chk chk-all"><input id="chk-all" type="checkbox" /> 全选</label>
+              <span id="batch-count" class="batch-count">已选 0 篇</span>
+              <button id="btn-batch-del" class="tiny-btn danger" type="button">删除所选</button>
+              <button id="btn-batch-exit" class="tiny-btn" type="button">退出</button>
+            </div>
+            <div id="feed-note" class="feed-note hidden"></div>
+            <ul id="post-list" class="post-list"></ul>
+            <div id="feed-more" class="feed-more hidden">
+              <button id="btn-more" class="small-btn" type="button">再看更早的</button>
+            </div>
+            <div id="feed-empty" class="feed-empty hidden"></div>
+          </div>
+
+          <!-- 二、单篇阅读 -->
+          <article id="post" class="post hidden">
+            <div class="post-bar">
+              <button id="btn-back" class="small-btn" type="button">&lsaquo; 返回列表</button>
+              <span class="fs-ctrl" title="正文字号，点加减号调整">
+                <button id="btn-fs-down" class="tiny-btn" type="button" aria-label="缩小字号">A－</button>
+                <span id="fs-label" class="fs-label">18</span>
+                <button id="btn-fs-up" class="tiny-btn" type="button" aria-label="放大字号">A＋</button>
+              </span>
+              <div class="post-bar-ops">
+                <button id="btn-edit-this" class="small-btn" type="button">编辑这篇</button>
+                <button id="btn-del-this" class="ghost-btn danger" type="button">删除这篇</button>
+              </div>
+            </div>
+            <h1 id="post-title" class="post-title"></h1>
+            <div id="post-meta" class="post-meta"></div>
+            <div id="post-body" class="post-body"></div>
+            <div class="post-foot">
+              <button id="btn-next-post" class="small-btn hidden" type="button">下一篇 &rsaquo;</button>
+            </div>
+          </article>
+
+          <!-- 三、写作 / 修改 -->
+          <section id="edit" class="edit hidden">
+            <div class="edit-bar">
+              <button id="btn-edit-back" class="small-btn" type="button">&lsaquo; 返回列表</button>
+              <div class="edit-bar-ops">
+                <label class="day-pick">
+                  日期
+                  <input id="edit-date" type="date" />
+                </label>
+                <label class="cat-pick">
+                  栏目
+                  <select id="cat-select"></select>
+                </label>
+              </div>
+            </div>
+            <input id="title" class="title-input" type="text" placeholder="这篇的标题" maxlength="120" autocomplete="off" />
+            <div class="moods" id="moods"></div>
+            <textarea
+              id="body"
+              class="body-input"
+              placeholder="这篇想记点什么？写完可以接着写下一篇。"
+              wrap="soft"
+            ></textarea>
+            <footer class="edit-foot">
+              <span id="status" class="status">尚未修改</span>
+              <div class="foot-actions">
+                <button id="btn-delete" class="ghost-btn danger hidden" type="button">删除这篇</button>
+                <button id="btn-again" class="small-btn" type="button">保存，再写一篇</button>
+                <button id="btn-save" class="primary-btn" type="button">保存并返回</button>
+              </div>
+            </footer>
+          </section>
+        </section>
+
+        <aside class="side">
+          <div class="side-title">我的栏目</div>
+          <ul id="cat-list" class="cat-list"></ul>
+          <div class="cat-add">
+            <input id="cat-input" type="text" placeholder="新栏目名" maxlength="20" />
+            <button id="btn-cat-add" class="small-btn" type="button">添加</button>
+          </div>
+
+          <div id="stats" class="stats"></div>
+
+          <div class="month-bar">
+            <button id="prev-month" class="nav-btn" type="button" aria-label="上一月">&lsaquo;</button>
+            <span id="month-label" class="month-label"></span>
+            <button id="next-month" class="nav-btn" type="button" aria-label="下一月">&rsaquo;</button>
+          </div>
+          <div class="week-head">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+          </div>
+          <div id="calendar" class="calendar"></div>
+          <div id="verline" class="verline"></div>
+        </aside>
+      </main>
+    </div>
+
+    <div id="dialog" class="dialog hidden">
+      <div class="dialog-box">
+        <div id="dialog-title" class="dialog-title"></div>
+        <div id="dialog-text" class="dialog-text"></div>
+        <div id="dialog-body"></div>
+        <div class="dialog-foot">
+          <button id="dialog-cancel" class="ghost-btn" type="button">取消</button>
+          <button id="dialog-ok" class="primary-btn" type="button">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
