@@ -151,10 +151,12 @@ body {
 /* ---------- 顶栏 ---------- */
 
 .topbar {
-  height: 56px;
+  min-height: 56px;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 10px 18px;
+  /* 窄窗口下整组换行；宽窗口下先让搜索框缩，谁也不许把字拆成两截 */
+  flex-wrap: nowrap;
   justify-content: space-between;
   padding: 0 20px;
   background: var(--surface);
@@ -168,6 +170,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 0 0 auto;
 }
 
 .brand-icon {
@@ -181,6 +184,7 @@ body {
   font-size: 19px;
   font-weight: 600;
   letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
 .search-box {
@@ -227,6 +231,10 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  /* 宽窗口下这一组不许自己拆成两行，宁可让搜索框先缩 */
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 /* 顶栏按钮不许把字拆开换行，放不下就整个挪到第二行 */
@@ -237,6 +245,17 @@ body {
 .who {
   font-size: 13px;
   color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* 窗口不到 1080 宽（客户端六个按钮放不下）才让顶栏换行 */
+@media (max-width: 1080px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+  .top-tools {
+    flex-wrap: wrap;
+  }
 }
 
 /* ---------- 整体框架：左正文右侧栏 ---------- */
@@ -656,6 +675,17 @@ body {
 }
 
 .ghost-btn.danger:hover {
+  border-color: var(--danger);
+}
+
+/* 待传、要登录这类提醒借用删除那套红字，四档配色里对比度都够 */
+.ghost-btn.warn-btn {
+  color: var(--danger);
+  border-color: var(--danger-soft);
+}
+
+.ghost-btn.warn-btn:hover {
+  color: var(--danger);
   border-color: var(--danger);
 }
 

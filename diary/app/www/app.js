@@ -12,6 +12,8 @@
   var PAGE_STEPS = [10, 20, 30, 50];
   var PAGE_DEFAULT = 20;
   var pageKey = "diary-page-size";
+  // Windows 客户端的同步徽章重绘函数，网页版一直是 null
+  var clientPaint = null;
   var FEED_PAGE = PAGE_DEFAULT;
 
   function el(id) {
@@ -1222,9 +1224,16 @@
   }
 
   function refreshAll() {
+    refreshSyncBadge();
     return Promise.all([loadCats(), loadMonth(), loadOverview()]).then(function () {
       return loadFeed(true);
     });
+  }
+
+  // 本机每改一次数据，「待传几篇」就得重算一次，不然要等下次同步才更新
+  function refreshSyncBadge() {
+    if (!clientPaint) return;
+    window.diaryClient.state().then(clientPaint).catch(function () {});
   }
 
   /* ---------- 事件 ---------- */
@@ -1486,6 +1495,7 @@
 
   api("api/session")
     .then(function (s) {
+      if (clientPaint) return; // 客户端模式这行由同步状态写，本机那份的账号名不是他看到的 NAS 账号
       el("who").textContent = s.uid === "local" ? "本机预览（未接入登录）" : s.username;
     })
     .catch(function () {});
@@ -1494,8 +1504,84 @@
     .then(function (d) {
       el("verline").textContent = "版本 " + d.version + " · 日记存在 " + d.dataDir;
       el("verline").title = d.dataDir;
+      if (d.client && window.diaryClient) initClientMode();
     })
     .catch(function () {});
+
+  // Windows 客户端那一份才有同步：顶栏多两个按钮，一个显同步状态，一个开设置
+  function initClientMode() {
+    var btn = el("btn-sync");
+    if (!btn) return;
+    btn.classList.remove("hidden");
+    var setBtn = el("btn-settings");
+    if (setBtn) {
+      setBtn.classList.remove("hidden");
+      setBtn.addEventListener("click", function () {
+        window.diaryClient.openPanel();
+      });
+    }
+    var snap = null; // 最近一次同步状态：点同步按钮要先看它是该传还是该弹登录
+    btn.addEventListener("click", function () {
+      if (!snap || !snap.addresses || !snap.addresses.length) {
+        window.diaryClient.openPanel();
+        return;
+      }
+      if (snap.needsLogin) {
+        window.diaryClient.login();
+        return;
+      }
+      window.diaryClient.sync();
+    });
+    var paint = function (s) {
+      if (!s) return;
+      snap = s;
+      var label = "同步";
+      var cls = "ghost-btn";
+      var tip = "把这台电脑上写的日记传到 NAS";
+      if (s.syncing) {
+        label = "同步中…";
+      } else if (!s.addresses.length) {
+        label = "要登录";
+        cls = "ghost-btn warn-btn";
+        tip = "还没加 NAS 地址，点「设置」填一条";
+      } else if (s.needsLogin) {
+        label = "要登录";
+        cls = "ghost-btn warn-btn";
+        tip = "点一下弹出飞牛的登录页，登一次就能传了";
+      } else if (s.pending > 0) {
+        label = "待传 " + s.pending;
+        cls = "ghost-btn warn-btn";
+        tip = "这台电脑上有 " + s.pending + " 处改动还没传到 NAS";
+      } else {
+        tip = "已经同步好了，点一下再传一次";
+      }
+      btn.textContent = label;
+      btn.className = cls;
+      btn.title = tip;
+      el("who").textContent = s.shownName || "";
+    };
+    window.diaryClient.onState(paint);
+    clientPaint = paint;
+    if (window.diaryClient.onPull) {
+      window.diaryClient.onPull(function (p) {
+        if (dirty) {
+          // 正在写这篇，先不刷列表，等他存完自己就出来了（存的时候会 refreshAll）
+          toast("NAS 上新取了 " + ((p && p.updated) || 0) + " 篇，等你这篇存完就看得见");
+          return;
+        }
+        refreshAll().catch(function () {});
+      });
+    }
+    window.diaryClient.onSync(function (d) {
+      if (!d || d.running) return;
+      if (d.ok) {
+        if (d.reason && d.reason !== "自动") toast("已经同步到 NAS");
+      } else if (!d.busy) {
+        toast(d.error || "同步没完成");
+      }
+    });
+    if (window.diaryClient.state) window.diaryClient.state().then(paint).catch(function () {});
+  }
 
   loadCats()
     .then(function () {

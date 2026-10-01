@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>同步与设置</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 14px 14px 24px;
+        font: 15px/1.6 "Microsoft YaHei", "PingFang SC", sans-serif;
+        color: #26332c;
+        background: #f5f3ec;
+      }
+      h1 {
+        font-size: 17px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 14px;
+        margin: 22px 0 8px;
+        color: #4d5b52;
+        border-bottom: 1px solid #ddd8c9;
+        padding-bottom: 4px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e0dbca;
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .status {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        align-items: center;
+      }
+      .badge {
+        font-size: 13px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid;
+        white-space: nowrap;
+      }
+      .ok {
+        color: #1f6b3a;
+        border-color: #a8d3b6;
+        background: #eef8f0;
+      }
+      .warn {
+        color: #8a4a12;
+        border-color: #e6c39a;
+        background: #fdf3e6;
+      }
+      .err {
+        color: #8c2020;
+        border-color: #e2b0b0;
+        background: #fbeeee;
+      }
+      .mute {
+        color: #6b7770;
+        font-size: 13px;
+      }
+      button {
+        font: inherit;
+        font-size: 14px;
+        padding: 7px 12px;
+        border-radius: 8px;
+        border: 1px solid #c9c2ad;
+        background: #fff;
+        color: #26332c;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      button:hover {
+        background: #f0eee3;
+      }
+      button.big {
+        background: #2f6b4f;
+        border-color: #2f6b4f;
+        color: #fff;
+        font-size: 16px;
+        padding: 10px 18px;
+      }
+      button.big:hover {
+        background: #275944;
+      }
+      button.link {
+        border: none;
+        background: none;
+        color: #2f6b4f;
+        padding: 2px 4px;
+        text-decoration: underline;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      input[type="text"],
+      input[type="url"] {
+        font: inherit;
+        font-size: 14px;
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #c9c2ad;
+        border-radius: 8px;
+        background: #fff;
+      }
+      select {
+        font: inherit;
+        font-size: 14px;
+        padding: 6px 8px;
+        border: 1px solid #c9c2ad;
+        border-radius: 8px;
+        background: #fff;
+        color: #26332c;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .addr {
+        border: 1px solid #e0dbca;
+        border-radius: 10px;
+        padding: 10px 12px;
+        background: #fff;
+        margin-bottom: 10px;
+      }
+      .addr.cur {
+        border-color: #2f6b4f;
+        box-shadow: 0 0 0 1px #2f6b4f inset;
+      }
+      .addr .url {
+        font-size: 13px;
+        color: #55635b;
+        word-break: break-all;
+        margin: 2px 0 8px;
+      }
+      .addr .ops {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+      label.keep {
+        font-size: 13px;
+        color: #55635b;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      ul.log {
+        margin: 6px 0 0;
+        padding: 0 0 0 16px;
+        font-size: 13px;
+        color: #55635b;
+        max-height: 180px;
+        overflow: auto;
+      }
+      ul.log li {
+        margin-bottom: 2px;
+      }
+      .path {
+        font-size: 12px;
+        color: #55635b;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>同步与设置</h1>
+    <div class="mute">本机照常写日记，联网时把写的传到 NAS；NAS 上写的也会取到本机。</div>
+
+    <h2>同步</h2>
+    <div class="card">
+      <div class="status">
+        <button class="big" id="btn-sync">立即同步</button>
+        <span id="state-badge" class="badge mute">正在读状态…</span>
+      </div>
+      <div class="mute" id="last-line" style="margin-top: 8px"></div>
+      <div class="mute" id="account-line" style="margin-top: 2px"></div>
+      <div id="login-need" style="margin-top: 10px; display: none">
+        <button id="btn-login-now">登录 NAS</button>
+        <span class="mute">登录一次就好，之后自动保持。</span>
+      </div>
+      <div class="row" style="margin-top: 10px">
+        <label class="keep" for="every">自动同步</label>
+        <select id="every">
+          <option value="0">关闭</option>
+          <option value="1">每 1 分钟</option>
+          <option value="5">每 5 分钟</option>
+          <option value="15">每 15 分钟</option>
+          <option value="30">每 30 分钟</option>
+          <option value="60">每 1 小时</option>
+        </select>
+      </div>
+      <div class="mute" style="margin-top: 4px">这一项只管这台电脑，不会跟着日记传到 NAS。选「关闭」也还能随时点上面的「立即同步」，关程序前照例会把没传上去的补一次。</div>
+    </div>
+
+    <h2>NAS 地址</h2>
+    <div id="add-box" class="card">
+      <div class="mute" style="margin-bottom: 6px">
+        填飞牛的公网地址（FN Connect 那个，形如 <code>https://你的飞牛域名</code>）或局域网地址（形如
+        <code>http://192.168.1.100:5666</code>），后面加不加 <code>/app/diary</code> 都行。
+      </div>
+      <input type="text" id="new-url" placeholder="粘贴 NAS 的网址" />
+      <div class="row" style="margin-top: 8px">
+        <input type="text" id="new-name" placeholder="备注名（可选），例如 家里的飞牛" style="flex: 1 1 160px" />
+        <button id="btn-add">添加</button>
+      </div>
+      <div class="mute" id="add-msg" style="margin-top: 6px"></div>
+    </div>
+    <div id="addrs" style="margin-top: 10px"></div>
+    <div class="mute" id="empty-hint" style="display: none">还没有地址。上面填一条 NAS 的网址，点「添加」就行。</div>
+
+    <h2>这台电脑上的日记</h2>
+    <div class="card">
+      <div class="path" id="data-dir"></div>
+      <div class="row" style="margin-top: 8px">
+        <button id="btn-open-data">打开这个文件夹</button>
+        <span class="mute">想备份就在日记本窗口点「导出备份」。</span>
+      </div>
+    </div>
+
+    <h2>同步记录</h2>
+    <ul class="log" id="log"></ul>
+
+    <script src="panel.js"></script>
+  </body>
+</html>

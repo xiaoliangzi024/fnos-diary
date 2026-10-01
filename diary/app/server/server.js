@@ -8,14 +8,18 @@ const DATA_ROOT = process.env.DATA_DIR || path.join(__dirname, "data");
 const WWW_DIR = process.env.WWW_DIR || path.join(__dirname, "..", "www");
 const SOCKET_PATH = process.env.SOCKET_PATH || "";
 const PORT = Number(process.env.PORT || 5001);
+// 只有客户端本机跑才会设这两个：飞牛上永远不设，所以飞牛上的行为一行没变
+const BIND_HOST = process.env.BIND_HOST || "";
+const TRUST_UID = /^[A-Za-z0-9_-]{1,12}$/.test(String(process.env.TRUST_UID || "")) ? String(process.env.TRUST_UID) : "";
 
 const MAX_BODY = 2 * 1024 * 1024;
 // 导入备份单独放宽：日记存上十几年，备份文件可能几十 MB
 const MAX_IMPORT_BODY = 200 * 1024 * 1024;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const MONTH_RE = /^\d{4}-\d{2}$/;
-// 栏目编号：NAS 自己建的仍是 c1 / c2 这种短号，客户端离线新建的用 c+随机串，
-// 两边不会撞号；万一撞了，同名就按同一个栏目处理
+// 栏目编号：NAS 网页端和客户端本机各自发号（c1、c2…），
+// 同一条栏目在两边编号可能不同，由客户端的对照表按名字对上；
+// 万一同名撞不上，带编号上传时 NAS 会另发一个并把真实编号回给客户端
 const ID_RE = /^c[0-9a-z]{1,12}$/;
 const ENTRY_RE = /^e[0-9a-z]{6,16}$/;
 const MAX_CAT = 30;
@@ -66,6 +70,9 @@ function userDir(uid) {
 
 // 身份只取网关转发的 Header，绝不接受客户端传入的用户 ID
 function getUid(req) {
+  // 本机跑的那一份由启动方钉死账号，请求头里传什么都不认，
+  // 免得本机上随便一个程序改个 Header 就能看别人的日记
+  if (TRUST_UID) return TRUST_UID;
   const raw = req.headers["x-trim-userid"];
   if (typeof raw === "string" && /^\d{1,12}$/.test(raw)) return raw;
   return "local";
@@ -133,13 +140,17 @@ function loadCats(dir) {
   }
   // 只有栏目文件真的不存在时才建默认栏目；用户把栏目删空要保留空列表
   if (!data || !Array.isArray(data.items)) {
+    // 客户端本机那一份不预先造默认栏目：NAS 上叫什么就用什么，
+    // 本机凭空多出「日常/工作/学习」会在 NAS 上变成三个重复栏目
     data = {
       seq: 3,
-      items: [
-        { id: "c1", name: "日常", createdAt: new Date().toISOString() },
-        { id: "c2", name: "工作", createdAt: new Date().toISOString() },
-        { id: "c3", name: "学习", createdAt: new Date().toISOString() },
-      ],
+      items: TRUST_UID
+        ? []
+        : [
+            { id: "c1", name: "日常", createdAt: new Date().toISOString() },
+            { id: "c2", name: "工作", createdAt: new Date().toISOString() },
+            { id: "c3", name: "学习", createdAt: new Date().toISOString() },
+          ],
     };
     saveCats(dir, data);
   }
@@ -458,7 +469,14 @@ async function api(req, res, uid, query) {
 
   if (route === "/api/info") {
     // syncApi：客户端靠它判断这台 NAS 支不支持离线同步（1 = 支持本机编号上传 + /api/changes）
-    return sendJson(res, 200, { version: APP_VER, dataDir: DATA_ROOT, dataVersion: DATA_VER, syncApi: 1 });
+    // client：1 = 这是客户端在自己机器上跑的那一份，界面据此换成本机形态
+    return sendJson(res, 200, {
+      version: APP_VER,
+      dataDir: DATA_ROOT,
+      dataVersion: DATA_VER,
+      syncApi: 1,
+      client: TRUST_UID ? 1 : 0,
+    });
   }
 
   /* ----- 栏目增删改 ----- */
@@ -965,6 +983,9 @@ process.on("uncaughtException", (e) => console.error("uncaught:", e && e.message
 if (SOCKET_PATH) {
   fs.rmSync(SOCKET_PATH, { force: true });
   server.listen(SOCKET_PATH, () => console.log("diary listening on " + SOCKET_PATH));
+} else if (BIND_HOST) {
+  // 客户端本机跑的时候只绑 127.0.0.1，别让局域网里任何一台机器都能读写这份日记
+  server.listen(PORT, BIND_HOST, () => console.log(`diary running at http://${BIND_HOST}:${PORT}${PREFIX}`));
 } else {
   server.listen(PORT, () => console.log(`diary running at http://localhost:${PORT}${PREFIX}`));
 }

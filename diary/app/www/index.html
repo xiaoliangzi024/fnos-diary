@@ -13,7 +13,7 @@
       <header class="topbar">
         <div class="brand">
           <img src="./images/icon_64.png" alt="" class="brand-icon" />
-          <span class="brand-name">日记本</span>
+          <span class="brand-name" id="brand-name">日记本</span>
         </div>
 
         <form id="search-form" class="search-box">
@@ -32,6 +32,9 @@
           <button id="btn-new" class="primary-btn" type="button">写一篇</button>
           <button id="btn-export" class="ghost-btn" type="button">导出备份</button>
           <button id="btn-import" class="ghost-btn" type="button">导入备份</button>
+          <!-- 这两个按钮只在 Windows 客户端那一份里出现（网页版拿不到 diaryClient 接口） -->
+          <button id="btn-sync" class="ghost-btn hidden" type="button" title="把这台电脑上写的日记传到 NAS">同步</button>
+          <button id="btn-settings" class="ghost-btn hidden" type="button" title="NAS 地址、登录、同步设置">设置</button>
           <input id="import-file" type="file" accept=".json,application/json" class="hidden" />
           <span id="who" class="who"></span>
         </div>

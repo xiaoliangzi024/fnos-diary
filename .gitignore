@@ -12,3 +12,10 @@ tools/fnpack.exe
 *.log
 Thumbs.db
 .DS_Store
+
+# Windows 客户端：依赖和测试跑出来的临时数据目录都不入库
+node_modules/
+client/test/.data/
+client/test/.data-nas/
+client/test/.data-shell/
+client/dist/

@@ -1,0 +1,20 @@
+{
+  "name": "diary-client",
+  "productName": "日记本",
+  "version": "0.1.0",
+  "private": true,
+  "description": "日记本 Windows 客户端：本机离线写日记，联网后自动同步回飞牛 NAS",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "node build/portable.js",
+    "test": "node test/nas-api.js && node test/twobox.js",
+    "test:nas": "node test/nas-api.js",
+    "test:box": "node test/twobox.js",
+    "test:shell": "node test/shell-e2e.js",
+    "test:packed": "node build/portable.js && node test/shell-e2e.js"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11"
+  }
+}
