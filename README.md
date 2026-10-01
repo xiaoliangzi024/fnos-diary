@@ -118,7 +118,7 @@ client/                    Windows 桌面客户端（Electron，只用 Node 标�
 本地预览.bat                双击：本机起服务和界面，改前端不用装到 NAS 上
 ```
 
-改完代码双击 `打包fpk.bat` 即可产出 `diary.fpk`。两个坑提前说明：
+改完代码双击 `打包fpk.bat` 即可产出 `diary.fpk`。三个坑提前说明：
 
 1. `fnpack.exe` 不在这个仓库里（第三方二进制）。它是打包必需的，你得自己放一份到 `tools/` 下。
 2. Windows 上打包会丢掉 `cmd/` 脚本的可执行位，所以打包流程里必须跑 `fix_fpk_perms.py`，`打包fpk.bat` 已经串好了这一步。
